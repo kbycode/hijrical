@@ -12,6 +12,7 @@ visibility** that depends on **where you are**, the **sunset day boundary**, and
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![CI](https://github.com/kbycode/hijrical/actions/workflows/ci.yml/badge.svg)](https://github.com/kbycode/hijrical/actions/workflows/ci.yml)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](pyproject.toml)
+[![Live demo](https://img.shields.io/badge/▶_Live_demo-hijrical_Studio-2dd4bf)](https://kbycode.github.io/hijrical-studio/)
 
 ```python
 from hijrical import HijriDate, from_gregorian, to_gregorian
@@ -20,6 +21,11 @@ from_gregorian(2026, 6, 15)          # HijriDate(1447, 12, 29, calendar='arithme
 to_gregorian(1447, 9, 1)             # datetime.date(2026, 2, 18)
 HijriDate.parse("15 Ramadan 1447")   # parse human input
 ```
+
+> 🌙 **Try every feature in your browser — [hijrical Studio](https://kbycode.github.io/hijrical-studio/).**
+> An interactive playground (converter, Hijri/Gregorian dual calendar, crescent
+> visibility, religious days) that runs **fully client-side** via Pyodide — no
+> install. Source: [kbycode/hijrical-studio](https://github.com/kbycode/hijrical-studio).
 
 ---
 
