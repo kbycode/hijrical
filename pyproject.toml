@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hijrical"
+version = "1.1.0"
+description = "Accurate, location-aware Hijri <-> Gregorian date conversion with crescent-visibility support."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "kbycode" }]
+keywords = [
+    "hijri", "islamic", "calendar", "gregorian", "umm-al-qura", "ramadan",
+    "crescent", "moon-sighting", "ircica", "diyanet", "date-conversion",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Internationalization",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = []  # Pure standard library.
+
+[project.urls]
+Homepage = "https://github.com/kbycode/hijrical"
+Documentation = "https://github.com/kbycode/hijrical#readme"
+Repository = "https://github.com/kbycode/hijrical"
+Issues = "https://github.com/kbycode/hijrical/issues"
+Changelog = "https://github.com/kbycode/hijrical/blob/main/CHANGELOG.md"
+
+[project.scripts]
+hijrical = "hijrical.cli:main"
+
+[tool.setuptools]
+packages = ["hijrical", "hijrical.locales"]
+
+[tool.setuptools.package-data]
+hijrical = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
