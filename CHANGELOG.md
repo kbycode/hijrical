@@ -4,6 +4,16 @@ All notable changes to **hijrical** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-06-16
+
+### Fixed
+- Corrected the project metadata URLs (Homepage / Repository / Issues) to the
+  real repository, and added Repository and Changelog links.
+
+### Changed
+- Packaging/repository housekeeping: added CI and Trusted-Publishing release
+  workflows, `.gitattributes`, and PyPI/CI badges. No code or API changes.
+
 ## [1.1.0] - 2026-06-16
 
 ### Added
