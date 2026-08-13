@@ -4,6 +4,20 @@ All notable changes to **hijrical** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-08-13
+
+### Fixed
+- Day lookups now label multi-day feasts with their day number, as the
+  religious-day list already did: `HijriDate(1447, 10, 2).holiday("tr")` returns
+  "Ramazan Bayramı (2. Gün)" rather than a bare "Ramazan Bayramı", so a calendar
+  cell and the list read identically.
+
+### Added
+- `holiday_day_index()` for the 1-based day within a multi-day feast.
+- A full audit of the religious days against Diyanet's published lists for
+  2022-2027: all 111 days match, in both directions (nothing missing, nothing
+  invented) and every published date is findable by day lookup.
+
 ## [1.3.0] - 2026-08-13
 
 ### Fixed

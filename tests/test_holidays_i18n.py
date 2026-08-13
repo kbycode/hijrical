@@ -33,7 +33,11 @@ def test_holiday_localized():
     assert HijriDate(1447, 9, 26).holiday("tr") == "Kadir Gecesi"
     assert HijriDate(1447, 9, 26).holiday("en") == "Laylat al-Qadr"
     assert HijriDate(1447, 9, 27).holiday("tr", observed=False) == "Kadir Gecesi"
-    assert HijriDate(1447, 12, 10).holiday("ar") == "عيد الأضحى"
+    # Multi-day feasts are labelled with their day number, as calendars print
+    # them and as ReligiousDay.name() already did.
+    assert HijriDate(1447, 12, 10).holiday("ar") == "عيد الأضحى (اليوم 1)"
+    assert HijriDate(1447, 12, 12).holiday("tr") == "Kurban Bayramı (3. Gün)"
+    assert HijriDate(1447, 10, 1).holiday("en") == "Eid al-Fitr (Day 1)"
 
 
 def test_grid_and_list_agree_on_holy_nights():

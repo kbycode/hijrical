@@ -117,6 +117,22 @@ def holiday_key(month: int, day: int, observed: bool = True) -> str | None:
     return None
 
 
+def holiday_day_index(month: int, day: int, observed: bool = True) -> int | None:
+    """1-based day number within a multi-day feast, or ``None``.
+
+    Eid al-Fitr runs three days and Eid al-Adha four, and calendars name them
+    individually ("Ramazan Bayramı (2. Gün)"). This lets a per-day lookup label
+    them the same way :meth:`ReligiousDay.name` does.
+    """
+    for m, start, count, _key, _kind, night in _FIXED:
+        if count == 1:
+            continue
+        first = start - 1 if (night and observed) else start
+        if m == month and first <= day < first + count:
+            return day - first + 1
+    return None
+
+
 def _greg(calendar, year: int, month: int, day: int) -> tuple[int, date]:
     jdn = calendar.to_jdn(year, month, day)
     y, m, d = jdn_to_gregorian(jdn)

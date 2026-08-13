@@ -16,7 +16,7 @@ from ._julian import gregorian_to_jdn, jdn_to_gregorian, jdn_weekday
 from ._sun import sunset
 from .calendars import ArithmeticCalendar, AstronomicalCalendar, Calendar
 from .exceptions import HijriError, ParseError
-from .holidays import holiday_key, raghaib
+from .holidays import holiday_day_index, holiday_key, raghaib
 from .locales import DEFAULT_LANGUAGE, get_locale, month_name, weekday_name
 from .observer import resolve_observer
 from .parsing import parse_fields
@@ -220,7 +220,12 @@ class HijriDate:
                 key = "raghaib"
         if key is None:
             return None
-        return get_locale(lang)["holidays"][key]
+        loc = get_locale(lang)
+        name = loc["holidays"][key]
+        index = holiday_day_index(self._month, self._day, observed=observed)
+        if index is not None:
+            name += loc["day_suffix"].format(n=index)
+        return name
 
     # -- formatting ----------------------------------------------------------
 
