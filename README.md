@@ -136,6 +136,7 @@ ramadan = lambda obs, crit: HijriDate(
 
 ramadan("mecca",    "umm_al_qura")   # 2026-02-18
 ramadan("istanbul", "ircica")        # 2026-02-19   ← one day later
+# For Türkiye's official date, use DiyanetCalendar() (see below), not a local observer.
 ramadan("jakarta",  "mabims")        # 2026-02-19
 ```
 
@@ -144,16 +145,19 @@ Or from the command line:
 ```text
 $ hijrical compare 1447 9 1
 Hijri 1447-09-01 in Gregorian, by method/location:
-  arithmetic            : 2026-02-18
-  Mecca      umm_al_qura: 2026-02-18
-  Mecca      ircica     : 2026-02-19
-  İstanbul   umm_al_qura: 2026-02-18
-  İstanbul   ircica     : 2026-02-19
-  Jakarta    umm_al_qura: 2026-02-19
-  Jakarta    ircica     : 2026-02-19
-  Rabat      umm_al_qura: 2026-02-18
-  Rabat      ircica     : 2026-02-19
+  arithmetic                 : 2026-02-18
+  Diyanet (Türkiye)          : 2026-02-19  [official]
+  global/ircica (unified)    : 2026-02-19
+  Mecca          umm_al_qura : 2026-02-18
+  Mecca          ircica      : 2026-02-19
+  İstanbul       umm_al_qura : 2026-02-18
+  İstanbul       ircica      : 2026-02-19
+  Jakarta        umm_al_qura : 2026-02-19
+  Jakarta        ircica      : 2026-02-19
+  Rabat          umm_al_qura : 2026-02-18
+  Rabat          ircica      : 2026-02-19
 ```
+
 
 ### What the engine actually computes
 
@@ -202,6 +206,43 @@ my_rule = AltitudeElongationCriterion(min_elongation=7.0, min_altitude=4.0, name
 AstronomicalCalendar("ankara", my_rule)
 ```
 
+### 🇹🇷 Türkiye / Diyanet: use the official calendar
+
+Turkey's calendar is **published** by Diyanet, and matching it exactly matters.
+`DiyanetCalendar` uses those official tables verbatim, so it agrees with the
+printed calendar 100% — validated row by row against 160 official Hijri/Gregorian
+pairs from 2022–2027:
+
+```python
+from hijrical import HijriDate, DiyanetCalendar, year_holidays
+
+cal = DiyanetCalendar()
+HijriDate(1447, 9, 1, calendar=cal).to_gregorian()      # 2026-02-19  (Diyanet: 19 Şubat)
+HijriDate.from_gregorian(2026, 6, 16, calendar=cal)     # 1 Muharrem 1448
+
+for r in year_holidays(1448, cal):
+    print(r.observed, r.name("tr"))     # .observed = the date Diyanet prints
+```
+
+Coverage is explicit — no silent guessing:
+
+```python
+cal.coverage()            # ((1443, 6), (1449, 8))  official range
+cal.is_official(1447, 9)  # True  -> straight from Diyanet's table
+cal.is_official(1460, 9)  # False -> astronomical fallback (Diyanet hasn't published it)
+```
+
+> **Why a table and not a formula?** Turkey's rule *is* the global criterion
+> below, and computing it reproduces Diyanet almost always. But several month
+> boundaries are decided within **0.1°** of the 8°/5° threshold, where any
+> difference in ephemeris or refraction model flips the month. A table is the
+> only way to be exactly right for the published years.
+
+> **Not the Turkish rule:** a *local* observer (`AstronomicalCalendar("istanbul",
+> "ircica")`) is a different question — "is it visible from Istanbul?" — and
+> matched only 5 of 10 official anchors. Use `DiyanetCalendar`, or
+> `scope="global"` for years past the tables.
+
 ### Local vs. global ("unified") calendars
 
 The criteria above judge visibility **at the observer's own location**. Some
@@ -220,14 +261,14 @@ HijriDate(1447, 9, 1, calendar=local).to_gregorian()    # 2026-02-19
 HijriDate(1447, 9, 1, calendar=global_).to_gregorian()  # 2026-02-18  (the world has seen it)
 ```
 
-The global mode samples a worldwide grid of locations at their local sunsets and
-declares the crescent seen as soon as any of them satisfies the criterion. It is
-therefore never *later* than a single-location result, and it approximates the
-"unified" calendars used by several authorities. For matching a specific
-authority exactly, pick the engine/criterion closest to its policy
-(`umm_al_qura` for Saudi Arabia, `scope="global"` + `ircica` for a Türkiye-style
-unified calendar) and treat results as predictions — the final word always
-belongs to the official sighting/announcement.
+The global mode sweeps a worldwide sample of **inhabited land** at each place's
+sunset and declares the crescent seen as soon as any of them satisfies the
+criterion. Land matters: the 2016 congress disregards a crescent that would only
+be visible over open ocean, and honouring that is what makes this mode track
+official calendars (it fixed a whole month boundary that a naive grid got a day
+early). For a specific authority, pick the closest engine — `DiyanetCalendar`
+for Turkey, `umm_al_qura` for Saudi Arabia — and treat computed years as
+predictions; the final word always belongs to the official announcement.
 
 ---
 
@@ -390,6 +431,7 @@ hijrical at "2026-06-15T22:00" --observer istanbul
 | `.month_length()` / `.year_length()` / `.is_leap_year()` | Calendar info |
 | `ArithmeticCalendar(variant)` | Tabular engine |
 | `AstronomicalCalendar(observer, criterion, scope="local"\|"global")` | Visibility engine (local or unified) |
+| `DiyanetCalendar()` | Turkey's official calendar (exact, from published tables) |
 | `Observer(name, latitude, longitude, utc_offset)` | A location |
 | `compute_crescent(observer, sunset, conj_jd)` → `CrescentInfo` | Visibility geometry |
 | `get_criterion(name)` / `available_criteria()` | Criteria |
@@ -415,7 +457,9 @@ hijrical at "2026-06-15T22:00" --observer istanbul
   distance and latitude exact to the quoted precision.
 - **Umm al-Qura:** the `mecca` + `umm_al_qura` configuration reproduces seven
   official anchor dates (Ramadan starts and both Eids) exactly.
-- 54 unit tests + 25 doctests, including round-trips, the location/`scope`
+- **Diyanet: 160/160 official rows reproduced exactly** (every published
+  Hijri/Gregorian pair, 2022-2027), plus the full 2026 religious-day list.
+- 60 unit tests + 25 doctests, including round-trips, the location/`scope`
   behaviour, i18n and the app-builder helpers. Run them with
   `python run_tests.py` (no pytest needed) or `pytest`.
 

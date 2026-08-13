@@ -37,9 +37,12 @@ def _resolve_calendar(calendar) -> Calendar:
             return _DEFAULT_ARITHMETIC
         if key in ("astronomical", "visibility", "crescent"):
             return _NAMED_CACHE.setdefault("astronomical", AstronomicalCalendar())
+        if key in ("diyanet", "turkey", "turkiye"):
+            from .diyanet import DiyanetCalendar
+            return _NAMED_CACHE.setdefault("diyanet", DiyanetCalendar())
         raise HijriError(
             f"Unknown calendar {calendar!r}. Use 'arithmetic', 'astronomical', "
-            "or pass an ArithmeticCalendar / AstronomicalCalendar instance."
+            "'diyanet', or pass a Calendar instance."
         )
     raise HijriError(f"Invalid calendar: {calendar!r}.")
 

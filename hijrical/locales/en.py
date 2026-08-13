@@ -19,6 +19,8 @@ LOCALE = {
         "new_year": "Islamic New Year",
         "ashura": "Day of Ashura",
         "mawlid": "Mawlid al-Nabi",
+        "three_months": "Beginning of the Three Months",
+        "eid_al_fitr_eve": "Eve of Eid al-Fitr",
         "raghaib": "Laylat al-Raghaib",
         "isra_miraj": "Isra and Mi'raj",
         "baraat": "Mid-Sha'ban (Bara'ah)",

@@ -24,6 +24,7 @@ from ._moon import SYNODIC_MONTH, new_moon_jd_ut
 from ._sun import datetime_to_jd_ut, sunset
 from .criteria import compute_crescent, get_criterion
 from .exceptions import InvalidDateError, OutOfRangeError
+from .land import LAND_POINTS
 from .observer import DEFAULT_OBSERVER, Observer, resolve_observer
 
 _CYCLE_YEARS = 30
@@ -187,28 +188,26 @@ class AstronomicalCalendar(Calendar):
         A :class:`~hijrical.criteria.Criterion` (or name) such as ``"ircica"``.
     scope
         ``"local"`` (default) judges visibility at ``observer`` only.
-        ``"global"`` judges it across a worldwide grid -- the month turns over
-        once the crescent is visible *anywhere*, approximating "unified" /
-        national calendars (e.g. the Türkiye Takvimi adopted in 2016).
-    grid
-        Optional ``(latitudes, longitudes)`` sample for global scope.
+        ``"global"`` judges it worldwide over **inhabited land** -- the month
+        turns over once the crescent is visible anywhere on land, which is how
+        "unified" national calendars work (e.g. Diyanet's Türkiye calendar,
+        following the 2016 Istanbul congress). Sightings that would fall only
+        on open ocean are disregarded, exactly as the congress specified.
+    sample
+        Optional iterable of ``(name, latitude, longitude)`` overriding the
+        built-in land sample used by the global scope.
     """
 
     name = "astronomical"
 
     def __init__(self, observer="mecca", criterion="ircica", *,
-                 scope: str = "local", grid=None) -> None:
+                 scope: str = "local", sample=None) -> None:
         self.observer = resolve_observer(observer) if observer is not None else DEFAULT_OBSERVER
         self.criterion = get_criterion(criterion)
         if scope not in ("local", "global"):
             raise InvalidDateError("scope must be 'local' or 'global'.")
         self.scope = scope
-        if grid is None:
-            lats = tuple(range(-30, 31, 15))            # -30..30 step 15
-            lons = tuple(range(-180, 180, 30))          # full longitude sweep
-            self._grid = (lats, lons)
-        else:
-            self._grid = grid
+        self._sample = tuple(sample) if sample is not None else LAND_POINTS
         self._starts: dict[int, int] = {}      # k -> JDN of day 1
         self._k0: int | None = None            # offset: month index N=0 maps to k0
         self._anchor_k: int = 0
@@ -232,13 +231,11 @@ class AstronomicalCalendar(Calendar):
         """
         if self.scope == "local":
             return self._visible_at(self.observer, evening_jdn, conjunction_jd_ut)
-        lats, lons = self._grid
-        for lon in lons:
-            tz = lon / 15.0  # mean solar time zone for that meridian
-            for lat in lats:
-                obs = Observer("grid", lat, lon, tz)
-                if self._visible_at(obs, evening_jdn, conjunction_jd_ut):
-                    return True
+        for name, lat, lon in self._sample:
+            # Local mean solar time fixes the instant of that place's sunset.
+            obs = Observer(name, lat, lon, lon / 15.0)
+            if self._visible_at(obs, evening_jdn, conjunction_jd_ut):
+                return True
         return False
 
     def _independent_start(self, k: int) -> int:

@@ -29,8 +29,11 @@ from .parsing import parse_fields
 
 
 def _build_calendar(args):
+    if args.method == "diyanet":
+        from .diyanet import DiyanetCalendar
+        return DiyanetCalendar()
     if args.method == "astronomical":
-        return AstronomicalCalendar(args.observer, args.criterion)
+        return AstronomicalCalendar(args.observer, args.criterion, scope=args.scope)
     return ArithmeticCalendar(args.variant)
 
 
@@ -58,10 +61,12 @@ def main(argv: list[str] | None = None) -> int:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--lang", default="en", help="Output language (en, tr, ar, ...).")
     common.add_argument("--method", default="arithmetic",
-                        choices=["arithmetic", "astronomical"])
+                        choices=["arithmetic", "astronomical", "diyanet"])
     common.add_argument("--variant", default="kuwaiti", help="Arithmetic variant.")
     common.add_argument("--observer", default="mecca", help="Observer/location key.")
     common.add_argument("--criterion", default="ircica", help="Visibility criterion.")
+    common.add_argument("--scope", default="local", choices=["local", "global"],
+                        help="Astronomical scope: local observer or worldwide land.")
     common.add_argument("--json", action="store_true", help="Emit JSON instead of text.")
 
     p = argparse.ArgumentParser(
@@ -107,11 +112,13 @@ def main(argv: list[str] | None = None) -> int:
 
     elif args.command == "holidays":
         print(f"Religious days of {args.year} AH (method: {args.method}):")
+        has_night = False
         for r in year_holidays(args.year, cal):
-            line = f"  {r.gregorian.isoformat()}  {r.name(lang)}"
-            if r.eve is not None:
-                line += f"  (night begins {r.eve.isoformat()})"
-            print(line)
+            mark = " (*)" if r.is_holy_night else ""
+            has_night = has_night or r.is_holy_night
+            print(f"  {r.observed.isoformat()}  {r.name(lang)}{mark}")
+        if has_night:
+            print("  (*) holy night: starts at sunset on the date shown.")
 
     elif args.command == "at":
         text = args.instant.replace("T", " ")
@@ -127,9 +134,17 @@ def main(argv: list[str] | None = None) -> int:
 
     elif args.command == "compare":
         y, m, d = args.year, args.month, args.day
+        from .diyanet import DiyanetCalendar
         arith = HijriDate(y, m, d, calendar=ArithmeticCalendar(args.variant))
+        diy = DiyanetCalendar()
+        glob = AstronomicalCalendar("mecca", "ircica", scope="global")
         print(f"Hijri {y}-{m:02d}-{d:02d} in Gregorian, by method/location:")
-        print(f"  arithmetic            : {arith.to_gregorian().isoformat()}")
+        print(f"  arithmetic                 : {arith.to_gregorian().isoformat()}")
+        tag = "official" if diy.is_official(y, m) else "predicted"
+        print(f"  Diyanet (Türkiye)          : "
+              f"{HijriDate(y, m, d, calendar=diy).to_gregorian().isoformat()}  [{tag}]")
+        print(f"  global/ircica (unified)    : "
+              f"{HijriDate(y, m, d, calendar=glob).to_gregorian().isoformat()}")
         for key in ("mecca", "istanbul", "jakarta", "rabat"):
             obs = resolve_observer(key)
             for crit in ("umm_al_qura", "ircica"):

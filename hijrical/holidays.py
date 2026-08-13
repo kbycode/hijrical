@@ -30,6 +30,7 @@ _FIXED = (
     (1, 1, 1, "new_year", OBSERVANCE, False),
     (1, 10, 1, "ashura", OBSERVANCE, False),
     (3, 12, 1, "mawlid", HOLY_NIGHT, True),
+    (7, 1, 1, "three_months", OBSERVANCE, False),
     (7, 27, 1, "isra_miraj", HOLY_NIGHT, True),
     (8, 15, 1, "baraat", HOLY_NIGHT, True),
     (9, 1, 1, "ramadan_start", FAST, False),
@@ -55,10 +56,28 @@ class ReligiousDay:
     def is_holy_night(self) -> bool:
         return self.kind == HOLY_NIGHT
 
+    @property
+    def observed(self) -> date:
+        """The date this day is **published/observed** on.
+
+        For a holy night that is its eve -- the evening the night begins -- which
+        is exactly how Diyanet and other authorities print kandils (e.g. Mi'raj
+        appears on 26 Rajab, the evening 27 Rajab starts). For everything else it
+        is the day itself.
+        """
+        return self.eve if self.eve is not None else self.gregorian
+
     def name(self, lang: str | None = None) -> str:
-        """Localized name (adds the day number for multi-day feasts)."""
+        """Localized name (adds the day number for multi-day feasts).
+
+        Falls back to the English name when a locale predates a holiday key, so
+        third-party locales keep working across upgrades.
+        """
         loc = get_locale(lang)
-        base = loc["holidays"][self.key]
+        base = loc["holidays"].get(self.key)
+        if base is None:
+            from .locales import get_locale as _gl
+            base = _gl("en")["holidays"].get(self.key, self.key)
         if self.day_index is not None:
             base += loc["day_suffix"].format(n=self.day_index)
         return base
@@ -134,5 +153,19 @@ def year_holidays(hijri_year: int, calendar, *, lang: str | None = None) -> list
                 )
             )
     days.append(raghaib(calendar, hijri_year))
+
+    # Eve of Eid al-Fitr: the last day of Ramadan, whose number depends on
+    # whether that Ramadan runs 29 or 30 days.
+    last = calendar.month_length(hijri_year, 9)
+    jdn, greg = _greg(calendar, hijri_year, 9, last)
+    days.append(
+        ReligiousDay(
+            key="eid_al_fitr_eve",
+            kind=OBSERVANCE,
+            hijri=(hijri_year, 9, last),
+            gregorian=greg,
+        )
+    )
+
     days.sort(key=lambda r: r.gregorian)
     return days

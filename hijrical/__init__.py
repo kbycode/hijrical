@@ -50,6 +50,7 @@ from .criteria import (
     compute_crescent,
     get_criterion,
 )
+from .diyanet import DIYANET_MONTH_STARTS, DiyanetCalendar, official_range
 from .exceptions import (
     HijriError,
     InvalidDateError,
@@ -77,7 +78,7 @@ from .tools import (
     upcoming_holidays,
 )
 
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 
 __all__ = [
     # core
@@ -90,6 +91,9 @@ __all__ = [
     "Calendar",
     "ArithmeticCalendar",
     "AstronomicalCalendar",
+    "DiyanetCalendar",
+    "DIYANET_MONTH_STARTS",
+    "official_range",
     "VARIANTS",
     # location & visibility
     "Observer",

@@ -18,6 +18,8 @@ LOCALE = {
         "new_year": "Hicri Yılbaşı",
         "ashura": "Aşure Günü",
         "mawlid": "Mevlid Kandili",
+        "three_months": "Üç Ayların Başlangıcı",
+        "eid_al_fitr_eve": "Arefe",
         "raghaib": "Regaib Kandili",
         "isra_miraj": "Miraç Kandili",
         "baraat": "Berat Kandili",

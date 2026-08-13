@@ -4,6 +4,36 @@ All notable changes to **hijrical** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-08-13
+
+### Added
+- **`DiyanetCalendar`** — Turkey's official Hijri calendar, backed by Diyanet's
+  published tables (1443-06 … 1449-08, i.e. 2022-2027), verified row by row
+  against 160 official Hijri/Gregorian pairs. Outside that range it falls back
+  to the astronomical unified engine; `coverage()` / `is_official()` say which.
+  Also selectable as `calendar="diyanet"` and `--method diyanet`.
+- `ReligiousDay.observed` — the date a day is actually **published/observed** on.
+  For holy nights that is the eve, which is how Diyanet (and others) print
+  kandils: Mi'raj appears on 26 Rajab, the evening 27 Rajab begins.
+- Religious days now include `three_months` (1 Rajab) and `eid_al_fitr_eve`
+  (last day of Ramadan), completing the official Turkish list.
+- `--scope {local,global}` on the CLI.
+
+### Fixed
+- **Global scope now honours the land rule.** The 2016 Istanbul congress counts
+  a crescent only if it is visible over land; sightings falling on open ocean
+  are disregarded. The previous grid accepted mid-Pacific points and so started
+  some months a day early. Agreement with Diyanet's official anchors went from
+  9/10 to 10/10 on the 2025 table.
+- Localized holiday names fall back to English when a third-party locale
+  predates a holiday key, instead of raising `KeyError`.
+
+### Changed
+- Guidance corrected: for Turkey use `DiyanetCalendar` (exact), or
+  `AstronomicalCalendar("mecca", "ircica", scope="global")` for years beyond the
+  published tables. A *local* observer with `ircica` is **not** the Turkish rule
+  and matched only 5 of 10 official anchors.
+
 ## [1.1.1] - 2026-06-16
 
 ### Fixed
