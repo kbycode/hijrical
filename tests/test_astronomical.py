@@ -97,6 +97,26 @@ def test_global_no_later_than_local():
         assert glob.to_jdn(year, 9, 1) <= local.to_jdn(year, 9, 1)
 
 
+def test_no_drift_far_from_anchor():
+    """Regression: months must stay locked to their own conjunction.
+
+    Deriving each month only from the previous one let errors accumulate; ~150
+    months past the anchor the calendar had drifted more than two weeks. Every
+    month start must stay within a day or so of the true new moon.
+    """
+    from hijrical._moon import SYNODIC_MONTH, new_moon_jd_ut
+
+    cal = AstronomicalCalendar("mecca", "umm_al_qura")
+    for year in (1445, 1450, 1455, 1460):
+        for month in (1, 6, 9):
+            start = cal.to_jdn(year, month, 1)
+            k = round((start - 2451550.09766) / SYNODIC_MONTH)
+            conj = new_moon_jd_ut(k)
+            lag = start - conj
+            # Day 1 follows the conjunction by roughly 1-3 days, never weeks.
+            assert 0 <= lag <= 3.5, f"{year}-{month:02d}: start is {lag:.1f} d after new moon"
+
+
 def test_modern_conversion_does_not_overbuild_chain():
     # Regression: from_jdn must estimate from the modern anchor, not from year 1
     # AH, so converting a present-day date stays cheap.

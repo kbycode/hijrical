@@ -4,6 +4,30 @@ All notable changes to **hijrical** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] - 2026-08-13
+
+### Fixed
+- **Astronomical drift.** Month starts were derived from the previous month and
+  clamped to 29/30 days, so small errors accumulated: ~150 months past the
+  anchor the calendar had slipped more than **two weeks**. Each month is now
+  anchored to its own conjunction and only then clamped, which removes the drift
+  entirely. Measured against the official Umm al-Qura table (1440-1455, all 192
+  month starts):
+
+  | engine | before | after |
+  |---|---|---|
+  | `mecca` / `umm_al_qura` | 80.7%, up to 15 days out | **99.0%, never more than 1 day** |
+  | global / `ircica` | 71.9%, up to 15 days out | **89.6%, never more than 1 day** |
+
+  `DiyanetCalendar` was unaffected inside its published range (it reads the
+  official table), but its fallback years were, as were long-range uses of the
+  astronomical engine.
+
+### Added
+- `tools/update_diyanet_table.py` — rebuilds the official table from Diyanet's
+  saved pages when they publish further years, verifying contiguity and 29/30
+  month lengths before emitting anything.
+
 ## [1.2.0] - 2026-08-13
 
 ### Added

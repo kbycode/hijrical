@@ -259,19 +259,22 @@ class AstronomicalCalendar(Calendar):
         self._calibrate()
         if k in self._starts:
             return self._starts[k]
+        # Each month is anchored to *its own* conjunction and only then clamped
+        # to 29/30 days from its neighbour. Deriving a month solely from the
+        # previous one (chaining) lets small errors accumulate: over ~150 months
+        # that drifted by more than two weeks.
         while k > self._hi:                     # extend forward
             nxt = self._hi + 1
-            conj = new_moon_jd_ut(nxt)
             prev = self._starts[self._hi]
-            length = 29 if self._visible(prev + 28, conj) else 30
-            self._starts[nxt] = prev + length
+            candidate = self._independent_start(nxt)
+            self._starts[nxt] = min(max(candidate, prev + 29), prev + 30)
             self._hi = nxt
         while k < self._lo:                     # extend backward
             cur = self._lo
-            conj = new_moon_jd_ut(cur)
             this_start = self._starts[cur]
-            length = 29 if self._visible(this_start - 1, conj) else 30
-            self._starts[cur - 1] = this_start - length
+            candidate = self._independent_start(cur - 1)
+            self._starts[cur - 1] = min(max(candidate, this_start - 30),
+                                        this_start - 29)
             self._lo = cur - 1
         return self._starts[k]
 

@@ -459,6 +459,13 @@ hijrical at "2026-06-15T22:00" --observer istanbul
   official anchor dates (Ramadan starts and both Eids) exactly.
 - **Diyanet: 160/160 official rows reproduced exactly** (every published
   Hijri/Gregorian pair, 2022-2027), plus the full 2026 religious-day list.
+- **Umm al-Qura:** against the official Saudi table (1440-1455, all 192 month
+  starts), `AstronomicalCalendar("mecca", "umm_al_qura")` agrees on **99.0%** and
+  is never more than a day out; the global/`ircica` engine agrees on 89.6% (it
+  is a different rule by design, not an error).
+- The arithmetic engine is a fixed rule, not an observation — it differs from
+  observed calendars by up to ~2 days. Use it when you need determinism and
+  reversibility, not when you need the official date.
 - 60 unit tests + 25 doctests, including round-trips, the location/`scope`
   behaviour, i18n and the app-builder helpers. Run them with
   `python run_tests.py` (no pytest needed) or `pytest`.
