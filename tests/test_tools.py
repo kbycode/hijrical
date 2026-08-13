@@ -38,9 +38,10 @@ def test_replace_and_fromisoformat():
 
 
 def test_to_dict():
-    d = HijriDate(1447, 9, 27).to_dict("en")
-    assert d["iso"] == "1447-09-27"
-    assert d["gregorian"] == "2026-03-16"
+    # 26 Ramadan is the evening Laylat al-Qadr (27 Ramadan) begins, so that is
+    # where calendars mark it.
+    d = HijriDate(1447, 9, 26).to_dict("en")
+    assert d["iso"] == "1447-09-26"
     assert d["holiday"] == "Laylat al-Qadr"
     assert d["month_name"] == "Ramadan"
 

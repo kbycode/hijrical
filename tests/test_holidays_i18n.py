@@ -18,16 +18,32 @@ from .util import assert_raises
 
 def test_holiday_keys():
     assert holiday_key(1, 1) == "new_year"
-    assert holiday_key(9, 27) == "laylat_al_qadr"
     assert holiday_key(12, 10) == "eid_al_adha"
     assert holiday_key(12, 13) == "eid_al_adha"  # 4th day
     assert holiday_key(5, 5) is None
+    # Holy nights are found on the date they are marked on -- the evening they
+    # begin -- so Laylat al-Qadr (27 Ramadan) answers on 26 Ramadan.
+    assert holiday_key(9, 26) == "laylat_al_qadr"
+    assert holiday_key(9, 27) is None
+    assert holiday_key(9, 27, observed=False) == "laylat_al_qadr"
+    assert holiday_key(9, 26, observed=False) is None
 
 
 def test_holiday_localized():
-    assert HijriDate(1447, 9, 27).holiday("tr") == "Kadir Gecesi"
-    assert HijriDate(1447, 9, 27).holiday("en") == "Laylat al-Qadr"
+    assert HijriDate(1447, 9, 26).holiday("tr") == "Kadir Gecesi"
+    assert HijriDate(1447, 9, 26).holiday("en") == "Laylat al-Qadr"
+    assert HijriDate(1447, 9, 27).holiday("tr", observed=False) == "Kadir Gecesi"
     assert HijriDate(1447, 12, 10).holiday("ar") == "عيد الأضحى"
+
+
+def test_grid_and_list_agree_on_holy_nights():
+    """A calendar cell and the religious-day list must not differ by a day."""
+    from hijrical import DiyanetCalendar
+    cal = DiyanetCalendar()
+    for rd in year_holidays(1448, cal):
+        marked = HijriDate(*rd.observed_hijri_date, calendar=cal)
+        assert marked.to_gregorian() == rd.observed, rd.key
+        assert marked.holiday("tr") is not None, rd.key
 
 
 def test_holy_night_is_previous_evening():

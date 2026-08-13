@@ -51,6 +51,7 @@ class ReligiousDay:
     gregorian: date
     eve: date | None = None        # evening a holy night begins on (Gregorian)
     day_index: int | None = None   # 1-based index within a multi-day feast
+    observed_hijri: tuple[int, int, int] | None = None  # Hijri date it is marked on
 
     @property
     def is_holy_night(self) -> bool:
@@ -66,6 +67,11 @@ class ReligiousDay:
         is the day itself.
         """
         return self.eve if self.eve is not None else self.gregorian
+
+    @property
+    def observed_hijri_date(self) -> tuple[int, int, int]:
+        """The **Hijri** date this day is marked on (mirror of :attr:`observed`)."""
+        return self.observed_hijri or self.hijri
 
     def name(self, lang: str | None = None) -> str:
         """Localized name (adds the day number for multi-day feasts).
@@ -92,14 +98,21 @@ class ReligiousDay:
         return self.describe()
 
 
-def holiday_key(month: int, day: int) -> str | None:
+def holiday_key(month: int, day: int, observed: bool = True) -> str | None:
     """Return the holiday key for a fixed-date (month, day), or ``None``.
 
-    Note: Raghaib (first Friday eve of Rajab) is not fixed-date; it is produced
-    by :func:`year_holidays` and detected by :meth:`HijriDate.holiday`.
+    With ``observed=True`` (the default) a **holy night matches its eve** -- the
+    date printed on calendars, because the night starts that evening. So Mawlid
+    is found on 11 Rabi al-awwal, the evening 12 Rabi al-awwal begins, which is
+    exactly how Diyanet prints it. Pass ``observed=False`` to match instead the
+    Hijri day the night belongs to (12 Rabi al-awwal).
+
+    Raghaib is not fixed-date; it is produced by :func:`year_holidays` and
+    detected by :meth:`HijriDate.holiday`.
     """
-    for m, start, count, key, _kind, _night in _FIXED:
-        if m == month and start <= day < start + count:
+    for m, start, count, key, _kind, night in _FIXED:
+        first = start - 1 if (night and observed) else start
+        if m == month and first <= day < first + count:
             return key
     return None
 
@@ -123,6 +136,9 @@ def raghaib(calendar, hijri_year: int) -> ReligiousDay:
         hijri=(hijri_year, 7, forward + 1),
         gregorian=date(fy, fm, fd),
         eve=date(ey, em, ed),
+        # The eve can fall in the previous month (e.g. 29 Jumada II 1445), so
+        # ask the calendar rather than assuming "day - 1".
+        observed_hijri=calendar.from_jdn(friday_jdn - 1),
     )
 
 
@@ -150,6 +166,8 @@ def year_holidays(hijri_year: int, calendar, *, lang: str | None = None) -> list
                     gregorian=greg,
                     eve=eve,
                     day_index=(i + 1) if count > 1 else None,
+                    observed_hijri=((hijri_year, m, day - 1) if night
+                                    else (hijri_year, m, day)),
                 )
             )
     days.append(raghaib(calendar, hijri_year))

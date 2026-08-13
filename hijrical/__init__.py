@@ -78,7 +78,7 @@ from .tools import (
     upcoming_holidays,
 )
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 
 __all__ = [
     # core

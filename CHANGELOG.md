@@ -4,6 +4,30 @@ All notable changes to **hijrical** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-08-13
+
+### Fixed
+- **A calendar grid and a religious-day list no longer disagree by a day.**
+  `year_holidays()` reported Mawlid on 24 August 2026 (as Diyanet prints it),
+  while looking up that same Gregorian day in a calendar returned nothing and
+  the *next* day returned "Mawlid" -- so anything drawing a calendar marked the
+  night one day late. Day lookups now use the date a day is **marked on**, the
+  evening a holy night begins, matching both the list and printed calendars.
+- The eve of Eid al-Fitr (last day of Ramadan) was returned by
+  `year_holidays()` but not by day lookups, for the same reason. It is now found
+  on both paths, whether that Ramadan runs 29 or 30 days.
+
+### Changed
+- `HijriDate.holiday()` and `holiday_key()` take `observed=True` by default:
+  a holy night answers on the date whose evening it begins (Mawlid on 11 Rabi
+  al-awwal, Laylat al-Qadr on 26 Ramadan). Pass `observed=False` for the old
+  behaviour -- the Hijri day the night belongs to.
+
+### Added
+- `ReligiousDay.observed_hijri_date` -- the Hijri counterpart of `.observed`,
+  correct even when the eve falls in the previous month (Raghaib can land on
+  29 Jumada II, exactly as Diyanet printed it for 1445).
+
 ## [1.2.1] - 2026-08-13
 
 ### Fixed

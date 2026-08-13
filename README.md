@@ -304,9 +304,16 @@ Arafah and Eid al-Adha (4 days). Holy nights carry an `eve` (the Gregorian
 evening the night begins). A single date's holiday:
 
 ```python
-HijriDate(1447, 9, 27).holiday("en")   # 'Laylat al-Qadr'
-HijriDate(1447, 9, 27).holiday("tr")   # 'Kadir Gecesi'
+HijriDate(1447, 9, 26).holiday("tr")   # 'Kadir Gecesi'  -- the evening it begins
+HijriDate(1447, 9, 27).holiday("tr", observed=False)   # same night, by Hijri day
 ```
+
+**Holy nights are marked on their eve.** The Islamic day starts at sunset, so
+the night of 27 Ramadan begins on the evening of the 26th — which is the date
+calendars print (Diyanet lists Laylat al-Qadr as 26 Ramadan, Mawlid as 11 Rabi
+al-awwal). Day lookups follow that convention by default, so a calendar grid and
+`year_holidays()` always name the same Gregorian day; `ReligiousDay` carries both
+(`.observed` / `.observed_hijri_date` and `.gregorian` / `.hijri`).
 
 ---
 

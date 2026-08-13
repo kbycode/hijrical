@@ -192,12 +192,31 @@ class HijriDate:
     def is_leap_year(self) -> bool:
         return self._calendar.is_leap_year(self._year)
 
-    def holiday(self, lang: str | None = None) -> str | None:
-        """Localized religious-day name if this date is one, else ``None``."""
-        key = holiday_key(self._month, self._day)
-        if key is None and self._month == 7:
+    def holiday(self, lang: str | None = None, observed: bool = True) -> str | None:
+        """Localized religious-day name if this date is one, else ``None``.
+
+        By default this matches the date the day is **marked on**: a holy night
+        is found on the date whose evening it begins, the same date
+        :attr:`ReligiousDay.observed` and printed calendars use. That keeps a
+        calendar grid and a religious-day list from disagreeing by a day. Pass
+        ``observed=False`` to match the Hijri day the night belongs to instead.
+
+        >>> HijriDate(1448, 3, 11).holiday("tr")   # evening 12 Rabi I begins
+        'Mevlid Kandili'
+        >>> HijriDate(1448, 3, 12).holiday("tr", observed=False)
+        'Mevlid Kandili'
+        """
+        key = holiday_key(self._month, self._day, observed=observed)
+        if key is None and self._month == 9:
+            # Eve of Eid al-Fitr: the last day of Ramadan, so its day number
+            # depends on whether that Ramadan runs 29 or 30 days.
+            if self._day == self._calendar.month_length(self._year, 9):
+                key = "eid_al_fitr_eve"
+        if key is None and self._month in (6, 7):
+            # Raghaib is dynamic, and its eve can land in Jumada II.
             rg = raghaib(self._calendar, self._year)
-            if rg.hijri[1:] == (self._month, self._day):
+            target = rg.observed_hijri_date if observed else rg.hijri
+            if target == (self._year, self._month, self._day):
                 key = "raghaib"
         if key is None:
             return None

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hijrical"
-version = "1.2.1"
+version = "1.3.0"
 description = "Accurate, location-aware Hijri <-> Gregorian date conversion with crescent-visibility support."
 readme = "README.md"
 requires-python = ">=3.9"
